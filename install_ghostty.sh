@@ -12,41 +12,33 @@ sudo apt install -y libgtk-4-dev libadwaita-1-dev git blueprint-compiler
 TMP_DIR=$(mktemp -d)
 echo "Using temporary directory: $TMP_DIR"
 
-# Check if Zig is installed and at least version 0.14.0
-ZIG_REQUIRED_VERSION="0.14.0"
-check_zig_version() {
-    local installed_version
-    installed_version=$(zig version 2>/dev/null || echo "0.0.0")
-    if [ "$(printf '%s\n' "$ZIG_REQUIRED_VERSION" "$installed_version" | sort -V | head -n1)" = "$ZIG_REQUIRED_VERSION" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
+# For building older Ghostty that works with Debian 12, we need Zig 0.13.0
+ZIG_BUILD_VERSION="0.13.0"
 
-if command -v zig &> /dev/null && check_zig_version; then
-    echo "Zig $ZIG_REQUIRED_VERSION or higher is already installed."
-else
-    echo "Downloading and installing Zig $ZIG_REQUIRED_VERSION..."
-    cd "$TMP_DIR"
-    ZIG_URL="https://ziglang.org/download/$ZIG_REQUIRED_VERSION/zig-linux-x86_64-$ZIG_REQUIRED_VERSION.tar.xz"
-    wget "$ZIG_URL"
-    tar -xf "zig-linux-x86_64-$ZIG_REQUIRED_VERSION.tar.xz"
-    sudo mv "zig-linux-x86_64-$ZIG_REQUIRED_VERSION" /usr/local/zig
-    sudo ln -sf /usr/local/zig/zig /usr/local/bin/zig
-    echo "Zig $ZIG_REQUIRED_VERSION installed successfully."
-fi
+# Download Zig 0.13.0 to temporary location for this build
+echo "Downloading Zig $ZIG_BUILD_VERSION for Ghostty build..."
+cd "$TMP_DIR"
+ZIG_URL="https://ziglang.org/download/$ZIG_BUILD_VERSION/zig-linux-x86_64-$ZIG_BUILD_VERSION.tar.xz"
+wget -q "$ZIG_URL"
+tar -xf "zig-linux-x86_64-$ZIG_BUILD_VERSION.tar.xz"
+ZIG_PATH="$TMP_DIR/zig-linux-x86_64-$ZIG_BUILD_VERSION/zig"
 
-# Verify Zig installation
-zig version || { echo "Zig installation failed!"; exit 1; }
+# Verify Zig download
+$ZIG_PATH version || { echo "Zig download failed!"; exit 1; }
+echo "Using Zig $($ZIG_PATH version) for build"
 
-# Clone and build Ghostty from the latest main branch
-echo "Cloning and building Ghostty from latest main branch..."
+# Define the Ghostty commit that works with Debian 12's older libraries
+# This is the commit shown in your working installation
+GHOSTTY_COMMIT="f1f11207"
+
+# Clone and checkout the specific commit
+echo "Cloning and building Ghostty from commit $GHOSTTY_COMMIT..."
 cd "$TMP_DIR"
 git clone https://github.com/ghostty-org/ghostty.git
 cd ghostty
+git -c advice.detachedHead=false checkout "$GHOSTTY_COMMIT"
 
-sudo zig build -p /usr -Doptimize=ReleaseFast
+sudo $ZIG_PATH build -p /usr -Doptimize=ReleaseFast
 echo "Ghostty installed successfully."
 
 # Cleanup
