@@ -12,12 +12,12 @@ sudo apt install -y libgtk-4-dev libadwaita-1-dev git blueprint-compiler
 TMP_DIR=$(mktemp -d)
 echo "Using temporary directory: $TMP_DIR"
 
-# Check if Zig is installed and at least version 0.13.0
-ZIG_REQUIRED_VERSION="0.13.0"
+# Check if Zig is installed and at least version 0.14.0
+ZIG_REQUIRED_VERSION="0.14.0"
 check_zig_version() {
     local installed_version
     installed_version=$(zig version 2>/dev/null || echo "0.0.0")
-    if [ "$(printf '%s\n' "$ZIG_REQUIRED_VERSION" "$installed_version" | sort -V | head -n1)" == "$ZIG_REQUIRED_VERSION" ]; then
+    if [ "$(printf '%s\n' "$ZIG_REQUIRED_VERSION" "$installed_version" | sort -V | head -n1)" = "$ZIG_REQUIRED_VERSION" ]; then
         return 0
     else
         return 1
@@ -40,15 +40,11 @@ fi
 # Verify Zig installation
 zig version || { echo "Zig installation failed!"; exit 1; }
 
-# Define the desired Ghostty commit (this should match a commit hash you trust)
-GHOSTTY_COMMIT="f1f1120749b7494c89689d993d5a893c27c236a5"
-
-# Always clone, checkout and build Ghostty from the desired commit
-echo "Cloning and building Ghostty from commit $GHOSTTY_COMMIT..."
+# Clone and build Ghostty from the latest main branch
+echo "Cloning and building Ghostty from latest main branch..."
 cd "$TMP_DIR"
 git clone https://github.com/ghostty-org/ghostty.git
 cd ghostty
-git -c advice.detachedHead=false checkout "$GHOSTTY_COMMIT"
 
 sudo zig build -p /usr -Doptimize=ReleaseFast
 echo "Ghostty installed successfully."
