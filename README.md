@@ -1,20 +1,32 @@
-> [!IMPORTANT]  
-> The script is **NOT** installing the latest version of ghostty.  The commit for Debian/Ubuntu currently working (02/20/2025) is 1.1.3-HEAD+f1f11207.
+# Ghostty Installation Script for Debian 12
 
-## Ghostty Installation Script for Debian 12
+This script automates the installation of **Ghostty** terminal emulator on Debian 12 (Bookworm) by building from source. It handles the dependency version conflicts between newer Ghostty releases and Debian 12's stable packages.
 
-This script automates the installation of **Ghostty** on Debian 12 using source files. It installs necessary dependencies, downloads and installs **Zig 0.13.0**, and builds **Ghostty** from source. It also ensures a clean installation by removing temporary files after the process.
+## Why This Script?
+
+The latest Ghostty releases require:
+- libadwaita 1.5.0+ (Debian 12 has 1.2.2)
+- blueprint-compiler 0.16.0+ (Debian 12 has 0.6.0)
+
+This script builds an older, compatible version (commit f1f11207) that works perfectly with Debian 12's packages.
 
 ## Prerequisites
 
-- Debian 12 (or a similar Debian-based distribution)
-- A user with `sudo` privileges
+- Debian 12 (Bookworm) or similar Debian-based distribution
+- User with `sudo` privileges
+- Internet connection for downloading dependencies
+
+## System Dependencies
+
+The script will automatically install:
+- `libgtk-4-dev` - GTK4 development files
+- `libadwaita-1-dev` - Adwaita (GNOME) development files
+- `git` - Version control system
+- `blueprint-compiler` - GTK blueprint compiler
 
 ## Installation Steps
 
 ### 1. Clone the repository
-
-Clone the repository containing this script to your local machine:
 
 ```bash
 git clone https://github.com/drewgrif/myghostty
@@ -23,37 +35,35 @@ cd myghostty
 
 ### 2. Make the script executable
 
-Change the permissions to make the script executable:
-
 ```bash
 chmod +x install_ghostty.sh
 ```
 
-### 3. Run the script
-
-Execute the script to install **Ghostty** and its dependencies:
+### 3. Run the installation script
 
 ```bash
-./install_ghostty.sh
+sudo ./install_ghostty.sh
 ```
 
 The script will:
 
-1. Install the necessary dependencies (`libgtk-4-dev`, `libadwaita-1-dev`, `git`).
-2. Download and install **Zig 0.13.0**.
-3. Clone the **Ghostty** repository from GitHub.
-4. Build and install **Ghostty** with optimization for performance.
-5. Clean up temporary files after the installation is complete.
+1. Install system dependencies via apt
+2. Download Zig 0.13.0 to a temporary location (required for this Ghostty version)
+3. Clone Ghostty repository and checkout commit f1f11207
+4. Build Ghostty with optimizations
+5. Install Ghostty to `/usr/bin/ghostty`
+6. Set up default configuration in `~/.config/ghostty/config`
+7. Clean up all temporary files
 
 ### 4. Verify the installation
 
-To verify that **Zig** has been installed successfully:
+After installation, verify Ghostty is working:
 
 ```bash
-zig version
+ghostty --version
 ```
 
-To verify **Ghostty** has been installed correctly, you can check if it is executable or check the installation paths based on your build setup.
+You should see: `ghostty 1.1.3-HEAD+f1f11207`
 
 ## Cleaning Up
 
